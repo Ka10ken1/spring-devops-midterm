@@ -7,7 +7,7 @@ PROD_ROOT="${PROD_ROOT:-/tmp/midterm-production}"
 command -v java >/dev/null || { echo "java is required"; exit 1; }
 command -v curl >/dev/null || { echo "curl is required"; exit 1; }
 
-mkdir -p "$PROD_ROOT"/{blue,green,shared,logs,data}
+mkdir -p "$PROD_ROOT"/{blue,green,shared,logs,data/blue,data/green}
 
 cat > "$PROD_ROOT/shared/app.env" <<ENV
 APP_PROD_ROOT=$PROD_ROOT
