@@ -250,21 +250,11 @@ Example log line:
 2026-05-01T12:41:43Z status=UP env=green port=8082 response={"application":"midterm","timestamp":"2026-05-01T12:41:43Z","status":"UP"}
 ```
 
-## Screenshot Checklist
-
-Add screenshots under `docs/images/` and embed them here before submission.
-
-Create the folder:
-
-```bash
-mkdir -p docs/images
-```
-
 ### Successful CI Pipeline
 
 Show GitHub Actions passing after a push or pull request.
 
-![Successful CI pipeline](images/ci-success.png)
+![Successful CI pipeline](../images/ci-success.png)
 
 ### IaC / Environment Preparation
 
@@ -274,7 +264,7 @@ Show successful execution of:
 ./scripts/prepare-env.sh
 ```
 
-![Environment preparation](images/iac-prepare-env.png)
+![Environment preparation](../images/iac-prepare-env.png)
 
 ### Blue-Green Deployment
 
@@ -284,7 +274,7 @@ Show successful execution of:
 ./scripts/deploy-blue-green.sh
 ```
 
-![Blue-green deployment](images/blue-green-deploy.png)
+![Blue-green deployment](../images/blue-green-deploy.png)
 
 ### Running App Health Checks
 
@@ -295,7 +285,7 @@ curl http://localhost:8081/health
 curl http://localhost:8082/health
 ```
 
-![Running health checks](images/running-health.png)
+![Running health checks](../images/running-health.png)
 
 ### Rollback
 
@@ -307,7 +297,7 @@ cat /tmp/midterm-production/shared/current
 cat /tmp/midterm-production/shared/previous
 ```
 
-![Rollback proof](images/rollback.png)
+![Rollback proof](../images/rollback.png)
 
 ### Monitoring Logs
 
@@ -317,7 +307,7 @@ Show:
 tail -f /tmp/midterm-production/logs/health-check.log
 ```
 
-![Monitoring logs](images/monitoring-log.png)
+![Monitoring logs](../images/monitoring-log.png)
 
 ## Troubleshooting
 
