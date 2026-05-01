@@ -1,18 +1,13 @@
 # DevOps Guide
 
+[Application README](../README.md) | [DevOps Guide](DEVOPS.md)
+
 ## Branches
 
-The project should keep two active branches:
+This repository currently uses:
 
-- `main`: stable production-ready branch
-- `dev`: active development branch
-
-Use descriptive commits, for example:
-
-- `feat: add student task endpoints`
-- `test: add API integration tests`
-- `ci: run tests and lint on push`
-- `deploy: add blue-green deployment scripts`
+- `master`: stable branch
+- `develop`: active development branch
 
 ## CI
 
@@ -23,7 +18,7 @@ It runs automatically on every push and pull request:
 1. `./scripts/lint.sh`
 2. `./mvnw test`
 
-## One-Command Environment Preparation
+## Environment Preparation
 
 ```bash
 ./scripts/prepare-env.sh
