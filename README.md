@@ -1,4 +1,4 @@
-# Spring Boot Midterm API
+# Spring Boot API / Devops Integration
 
 ## Documentation
 
