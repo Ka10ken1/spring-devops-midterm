@@ -38,13 +38,6 @@ git merge develop
 git push origin master
 ```
 
-Use short, descriptive commit messages such as:
-
-- `feat: add nested task endpoints`
-- `test: add api integration tests`
-- `ci: run lint and tests`
-- `deploy: add blue-green deployment scripts`
-
 ## CI
 
 GitHub Actions workflow: `.github/workflows/ci.yml`
@@ -271,9 +264,7 @@ mkdir -p docs/images
 
 Show GitHub Actions passing after a push or pull request.
 
-```markdown
 ![Successful CI pipeline](images/ci-success.png)
-```
 
 ### IaC / Environment Preparation
 
@@ -283,9 +274,7 @@ Show successful execution of:
 ./scripts/prepare-env.sh
 ```
 
-```markdown
 ![Environment preparation](images/iac-prepare-env.png)
-```
 
 ### Blue-Green Deployment
 
@@ -295,9 +284,7 @@ Show successful execution of:
 ./scripts/deploy-blue-green.sh
 ```
 
-```markdown
 ![Blue-green deployment](images/blue-green-deploy.png)
-```
 
 ### Running App Health Checks
 
@@ -308,9 +295,7 @@ curl http://localhost:8081/health
 curl http://localhost:8082/health
 ```
 
-```markdown
 ![Running health checks](images/running-health.png)
-```
 
 ### Rollback
 
@@ -322,9 +307,7 @@ cat /tmp/midterm-production/shared/current
 cat /tmp/midterm-production/shared/previous
 ```
 
-```markdown
 ![Rollback proof](images/rollback.png)
-```
 
 ### Monitoring Logs
 
@@ -334,9 +317,7 @@ Show:
 tail -f /tmp/midterm-production/logs/health-check.log
 ```
 
-```markdown
 ![Monitoring logs](images/monitoring-log.png)
-```
 
 ## Troubleshooting
 
