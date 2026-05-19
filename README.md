@@ -13,6 +13,8 @@ The application uses:
 
 - Spring Boot
 - Spring Web MVC
+- Spring Security
+- Thymeleaf
 - Spring Data JPA / Hibernate
 - PostgreSQL for the main application database
 - H2 for automated tests and local production simulation
@@ -53,6 +55,69 @@ Health check:
 ```http
 GET /health
 ```
+
+## Security
+
+The application uses Spring Security with a Thymeleaf login page, HTTP Basic authentication for API clients, BCrypt password hashing, and in-memory users.
+
+Login page:
+
+```text
+http://localhost:8080/login
+```
+
+Logout endpoint:
+
+```http
+POST /logout
+```
+
+Test credentials:
+
+| Username | Password | Roles |
+| --- | --- | --- |
+| `user` | `user123` | `USER` |
+| `admin` | `admin123` | `ADMIN`, `USER` |
+
+Role behavior:
+
+- `USER` can sign in, view existing students, and create/assign tasks for students.
+- `ADMIN` can do everything a user can do, plus add, update, and delete students.
+
+Public endpoints:
+
+```http
+GET /
+GET /health
+GET /swagger-ui.html
+GET /swagger-ui/**
+GET /v3/api-docs/**
+```
+
+Protected endpoints:
+
+```http
+GET /profile
+GET /students
+GET /students/{id}
+GET /students/{studentId}/tasks/{taskId}
+/api/**
+```
+
+ADMIN-only functionality:
+
+```http
+GET /admin
+POST /admin/students
+POST /admin/students/{id}/delete
+POST /api/students
+PUT /api/students/{id}
+DELETE /api/students/{id}
+```
+
+Method-level security is enabled with `@EnableMethodSecurity`. The `/admin` page plus `StudentService.create` and `StudentService.delete` methods are restricted with `@PreAuthorize("hasRole('ADMIN')")`.
+
+CSRF protection is enabled for the Thymeleaf UI forms. `SecurityConfig` ignores CSRF only for `/api/**` because those JSON endpoints are intended for API clients such as Swagger, curl, and integration tests.
 
 Students:
 
