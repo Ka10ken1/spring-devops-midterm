@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title th:text="${task.title}">Task</title>
+	<link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+	<header class="topbar">
+		<a class="brand" th:href="@{/profile}">Midterm Hub</a>
+		<nav class="nav-links">
+			<a th:href="@{/students/{id}(id=${task.studentId})}">Back to student</a>
+			<a th:href="@{/students}">Students</a>
+			<form th:action="@{/logout}" method="post">
+				<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+				<button class="link-button" type="submit">Logout</button>
+			</form>
+		</nav>
+	</header>
+
+	<main class="container two-column">
+		<section class="panel">
+			<p class="eyebrow">Task</p>
+			<h1 th:text="${task.title}">Task title</h1>
+			<p class="muted" th:text="${task.description == null || task.description.isBlank() ? 'No description' : task.description}">Description</p>
+			<div class="meta-grid">
+				<div>
+					<span>Status</span>
+					<strong th:text="${task.completed ? 'Completed' : 'Open'}">Open</strong>
+				</div>
+				<div>
+					<span>Due</span>
+					<strong th:text="${task.dueDate == null ? 'No date' : task.dueDate}">No date</strong>
+				</div>
+				<div>
+					<span>Student</span>
+					<strong th:text="${task.studentName}">Student Name</strong>
+				</div>
+			</div>
+
+			<hr>
+			<p class="eyebrow">Add Note</p>
+			<form class="stack" th:action="@{/students/{studentId}/tasks/{taskId}/notes(studentId=${task.studentId},taskId=${task.id})}" method="post">
+				<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+				<label>
+					Note
+					<textarea name="content" rows="5" minlength="2" maxlength="1000" required></textarea>
+				</label>
+				<button class="button primary full" type="submit">Save note</button>
+			</form>
+		</section>
+
+		<section class="panel">
+			<p class="eyebrow">Notes</p>
+			<h1>Task history</h1>
+			<div class="timeline" th:if="${!notes.isEmpty()}">
+				<article class="note" th:each="note : ${notes}">
+					<time th:text="${note.createdAt}">created</time>
+					<p th:text="${note.content}">Note content</p>
+				</article>
+			</div>
+			<p class="empty-state" th:if="${notes.isEmpty()}">No notes have been added yet.</p>
+		</section>
+	</main>
+</body>
+</html>

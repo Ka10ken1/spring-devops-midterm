@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Admin | Midterm Hub</title>
+	<link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+	<header class="topbar admin-topbar">
+		<a class="brand" th:href="@{/profile}">Midterm Hub</a>
+		<nav class="nav-links">
+			<a th:href="@{/profile}">Dashboard</a>
+			<a th:href="@{/students}">Students</a>
+			<form th:action="@{/logout}" method="post">
+				<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+				<button class="link-button" type="submit">Logout</button>
+			</form>
+		</nav>
+	</header>
+
+	<main class="container">
+		<section class="panel hero-panel danger-panel">
+			<div>
+				<p class="eyebrow">ADMIN Only</p>
+				<h1>Administration</h1>
+				<p class="lead">This page is role-restricted. Only ADMIN users can add or delete students.</p>
+			</div>
+			<div class="stat">
+				<span th:text="${students.size()}">0</span>
+				<small>students</small>
+			</div>
+		</section>
+
+		<section class="panel">
+			<p class="eyebrow">Create</p>
+			<h2>Add student</h2>
+			<form class="stack" th:action="@{/admin/students}" method="post">
+				<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+				<label>
+					First name
+					<input name="firstName" type="text" minlength="2" maxlength="50" required>
+				</label>
+				<label>
+					Last name
+					<input name="lastName" type="text" minlength="2" maxlength="50" required>
+				</label>
+				<label>
+					Email
+					<input name="email" type="email" maxlength="100" required>
+				</label>
+				<button class="button primary full" type="submit">Create student</button>
+			</form>
+		</section>
+
+		<section class="panel admin-section">
+			<p class="eyebrow">Danger Zone</p>
+			<h2>Delete students</h2>
+			<div class="cards-list" th:if="${!students.isEmpty()}">
+				<div class="row-card admin-row" th:each="student : ${students}">
+					<div>
+						<strong th:text="${student.firstName + ' ' + student.lastName}">Student Name</strong>
+						<span th:text="${student.email}">student@example.com</span>
+					</div>
+					<form th:action="@{/admin/students/{id}/delete(id=${student.id})}" method="post">
+						<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+						<button class="button danger" type="submit">Delete</button>
+					</form>
+				</div>
+			</div>
+			<p class="empty-state" th:if="${students.isEmpty()}">There are no students to manage.</p>
+		</section>
+	</main>
+</body>
+</html>

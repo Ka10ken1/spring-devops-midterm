@@ -14,6 +14,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -35,6 +36,7 @@ public class StudentService implements IService<StudentRequest, StudentResponse>
 	}
 
 	@Override
+	@PreAuthorize("hasRole('ADMIN')")
 	public StudentResponse create(StudentRequest request) {
 		Student student = new Student();
 		updateStudentFields(student, request);
@@ -72,6 +74,7 @@ public class StudentService implements IService<StudentRequest, StudentResponse>
 	}
 
 	@Override
+	@PreAuthorize("hasRole('ADMIN')")
 	public void delete(Long id) {
 		Student student = findStudent(id);
 		studentRepository.delete(student);
