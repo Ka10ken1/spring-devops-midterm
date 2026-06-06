@@ -132,11 +132,12 @@ Log output remains in English for operational messages; localization applies to 
 
 ## Structured Logging
 
-Logging uses SLF4J through Lombok's `@Slf4j` in services, the exception handler, and dev data initialization.
+Logging is split across layers using SLF4J through Lombok's `@Slf4j`:
 
-| Component | Examples |
+| Layer | What gets logged |
 | --- | --- |
-| `StudentService`, `TaskService`, `NoteService` | `INFO` for create/update/delete, `DEBUG` for grid queries, `WARN` for not-found cases |
+| REST controllers | `INFO` for incoming create/update/delete API requests |
+| Services | `DEBUG` for grid query results, `WARN` for not-found cases |
 | `GlobalExceptionHandler` | `WARN` for validation/not-found, `ERROR` for data integrity violations |
 | `DataInitializer` | `INFO` for dev seed data loading |
 

@@ -46,9 +46,7 @@ public class NoteService implements INoteService {
 		Note note = new Note();
 		note.setCreatedAt(LocalDateTime.now());
 		updateNoteFields(note, taskId, request);
-		NoteResponse response = toResponse(noteRepository.save(note));
-		log.info("Created note with id {} for task {}", note.getId(), taskId);
-		return response;
+		return toResponse(noteRepository.save(note));
 	}
 
 	@Override
@@ -80,16 +78,13 @@ public class NoteService implements INoteService {
 	public NoteResponse update(Long taskId, Long noteId, NoteRequest request) {
 		Note note = findNoteForTask(taskId, noteId);
 		updateNoteFields(note, taskId, request);
-		NoteResponse response = toResponse(noteRepository.save(note));
-		log.info("Updated note with id {} for task {}", noteId, taskId);
-		return response;
+		return toResponse(noteRepository.save(note));
 	}
 
 	@Override
 	public void delete(Long taskId, Long noteId) {
 		Note note = findNoteForTask(taskId, noteId);
 		noteRepository.delete(note);
-		log.info("Deleted note with id {} for task {}", noteId, taskId);
 	}
 
 	private Note findNote(Long id) {

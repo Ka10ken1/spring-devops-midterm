@@ -7,6 +7,7 @@ import com.spring_midterm.midterm.dto.TaskResponse;
 import com.spring_midterm.midterm.service.ITaskService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/students/{studentId}/tasks")
 public class TaskController {
@@ -32,6 +34,7 @@ public class TaskController {
 	@ResponseStatus(HttpStatus.CREATED)
 	@Operation(summary = "Create a task", description = "Adds a new task and assigns it to a student.")
 	public TaskResponse createTask(@PathVariable Long studentId, @Valid @RequestBody TaskRequest request) {
+		log.info("API request: create task for student {}", studentId);
 		return taskService.create(studentId, request);
 	}
 
@@ -42,6 +45,7 @@ public class TaskController {
 			@PathVariable Long taskId,
 			@Valid @RequestBody TaskRequest request
 	) {
+		log.info("API request: update task {} for student {}", taskId, studentId);
 		return taskService.update(studentId, taskId, request);
 	}
 
@@ -49,6 +53,7 @@ public class TaskController {
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	@Operation(summary = "Delete a task", description = "Deletes a task record by id.")
 	public void deleteTask(@PathVariable Long studentId, @PathVariable Long taskId) {
+		log.info("API request: delete task {} for student {}", taskId, studentId);
 		taskService.delete(studentId, taskId);
 	}
 

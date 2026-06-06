@@ -7,6 +7,7 @@ import com.spring_midterm.midterm.dto.StudentResponse;
 import com.spring_midterm.midterm.service.IService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/students")
 public class StudentController {
@@ -32,12 +34,14 @@ public class StudentController {
 	@ResponseStatus(HttpStatus.CREATED)
 	@Operation(summary = "Create a student", description = "Adds a new student record.")
 	public StudentResponse createStudent(@Valid @RequestBody StudentRequest request) {
+		log.info("API request: create student with email {}", request.email());
 		return studentService.create(request);
 	}
 
 	@PutMapping("/{id}")
 	@Operation(summary = "Update a student", description = "Updates an existing student record.")
 	public StudentResponse updateStudent(@PathVariable Long id, @Valid @RequestBody StudentRequest request) {
+		log.info("API request: update student with id {}", id);
 		return studentService.update(id, request);
 	}
 
@@ -45,6 +49,7 @@ public class StudentController {
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	@Operation(summary = "Delete a student", description = "Deletes a student record by id.")
 	public void deleteStudent(@PathVariable Long id) {
+		log.info("API request: delete student with id {}", id);
 		studentService.delete(id);
 	}
 

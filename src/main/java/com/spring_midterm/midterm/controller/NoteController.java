@@ -7,6 +7,7 @@ import com.spring_midterm.midterm.dto.PageResponse;
 import com.spring_midterm.midterm.service.INoteService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/tasks/{taskId}/notes")
 public class NoteController {
@@ -32,6 +34,7 @@ public class NoteController {
 	@ResponseStatus(HttpStatus.CREATED)
 	@Operation(summary = "Create a note", description = "Adds a new note and attaches it to a task.")
 	public NoteResponse createNote(@PathVariable Long taskId, @Valid @RequestBody NoteRequest request) {
+		log.info("API request: create note for task {}", taskId);
 		return noteService.create(taskId, request);
 	}
 
@@ -42,6 +45,7 @@ public class NoteController {
 		@PathVariable Long noteId,
 		@Valid @RequestBody NoteRequest request
 	) {
+		log.info("API request: update note {} for task {}", noteId, taskId);
 		return noteService.update(taskId, noteId, request);
 	}
 
@@ -49,6 +53,7 @@ public class NoteController {
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	@Operation(summary = "Delete a note", description = "Deletes a note record by id.")
 	public void deleteNote(@PathVariable Long taskId, @PathVariable Long noteId) {
+		log.info("API request: delete note {} for task {}", noteId, taskId);
 		noteService.delete(taskId, noteId);
 	}
 
