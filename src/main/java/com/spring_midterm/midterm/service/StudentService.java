@@ -35,6 +35,7 @@ public class StudentService implements IService<StudentRequest, StudentResponse>
 
 	public StudentService(IRepository<Student> studentRepository) {
 		this.studentRepository = studentRepository;
+		
 	}
 
 	@Override
@@ -42,9 +43,7 @@ public class StudentService implements IService<StudentRequest, StudentResponse>
 	public StudentResponse create(StudentRequest request) {
 		Student student = new Student();
 		updateStudentFields(student, request);
-		StudentResponse response = toResponse(studentRepository.save(student));
-		log.info("Created student with id {}", student.getId());
-		return response;
+		return toResponse(studentRepository.save(student));
 	}
 
 	@Override
@@ -75,9 +74,7 @@ public class StudentService implements IService<StudentRequest, StudentResponse>
 	public StudentResponse update(Long id, StudentRequest request) {
 		Student student = findStudent(id);
 		updateStudentFields(student, request);
-		StudentResponse response = toResponse(studentRepository.save(student));
-		log.info("Updated student with id {}", id);
-		return response;
+		return toResponse(studentRepository.save(student));
 	}
 
 	@Override
@@ -85,7 +82,6 @@ public class StudentService implements IService<StudentRequest, StudentResponse>
 	public void delete(Long id) {
 		Student student = findStudent(id);
 		studentRepository.delete(student);
-		log.info("Deleted student with id {}", id);
 	}
 
 	private Student findStudent(Long id) {

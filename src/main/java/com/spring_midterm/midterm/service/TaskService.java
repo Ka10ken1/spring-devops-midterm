@@ -46,9 +46,7 @@ public class TaskService implements ITaskService {
 	public TaskResponse create(Long studentId, TaskRequest request) {
 		Task task = new Task();
 		updateTaskFields(task, studentId, request);
-		TaskResponse response = toResponse(taskRepository.save(task));
-		log.info("Created task with id {} for student {}", task.getId(), studentId);
-		return response;
+		return toResponse(taskRepository.save(task));
 	}
 
 	@Override
@@ -82,16 +80,13 @@ public class TaskService implements ITaskService {
 	public TaskResponse update(Long studentId, Long taskId, TaskRequest request) {
 		Task task = findTaskForStudent(studentId, taskId);
 		updateTaskFields(task, studentId, request);
-		TaskResponse response = toResponse(taskRepository.save(task));
-		log.info("Updated task with id {} for student {}", taskId, studentId);
-		return response;
+		return toResponse(taskRepository.save(task));
 	}
 
 	@Override
 	public void delete(Long studentId, Long taskId) {
 		Task task = findTaskForStudent(studentId, taskId);
 		taskRepository.delete(task);
-		log.info("Deleted task with id {} for student {}", taskId, studentId);
 	}
 
 	private Task findTask(Long id) {
