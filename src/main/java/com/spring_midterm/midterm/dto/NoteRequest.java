@@ -1,9 +1,9 @@
 package com.spring_midterm.midterm.dto;
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public record NoteRequest(
-		@NotNull @Size(min = 2, max = 1000) String content
+		@NotBlank(message = "{validation.content.notblank}") @Size(min = 2, max = 1000, message = "{validation.content.size}") String content
 ) {
 }

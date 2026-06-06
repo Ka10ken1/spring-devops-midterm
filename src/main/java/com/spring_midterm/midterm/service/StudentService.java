@@ -9,6 +9,7 @@ import com.spring_midterm.midterm.exception.ResourceNotFoundException;
 import com.spring_midterm.midterm.repository.IRepository;
 import java.util.List;
 import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -18,6 +19,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+@Slf4j
 @Service
 public class StudentService implements IService<StudentRequest, StudentResponse> {
 
@@ -40,7 +42,9 @@ public class StudentService implements IService<StudentRequest, StudentResponse>
 	public StudentResponse create(StudentRequest request) {
 		Student student = new Student();
 		updateStudentFields(student, request);
-		return toResponse(studentRepository.save(student));
+		StudentResponse response = toResponse(studentRepository.save(student));
+		log.info("Created student with id {}", student.getId());
+		return response;
 	}
 
 	@Override
@@ -52,6 +56,7 @@ public class StudentService implements IService<StudentRequest, StudentResponse>
 				.map(this::toResponse)
 				.toList();
 
+		log.debug("Student grid query returned {} results", items.size());
 		return new PageResponse<>(
 				items,
 				studentPage.getNumber(),
@@ -70,7 +75,9 @@ public class StudentService implements IService<StudentRequest, StudentResponse>
 	public StudentResponse update(Long id, StudentRequest request) {
 		Student student = findStudent(id);
 		updateStudentFields(student, request);
-		return toResponse(studentRepository.save(student));
+		StudentResponse response = toResponse(studentRepository.save(student));
+		log.info("Updated student with id {}", id);
+		return response;
 	}
 
 	@Override
@@ -78,11 +85,15 @@ public class StudentService implements IService<StudentRequest, StudentResponse>
 	public void delete(Long id) {
 		Student student = findStudent(id);
 		studentRepository.delete(student);
+		log.info("Deleted student with id {}", id);
 	}
 
 	private Student findStudent(Long id) {
 		return studentRepository.findById(id)
-				.orElseThrow(() -> new ResourceNotFoundException("Student with id " + id + " was not found"));
+				.orElseThrow(() -> {
+					log.warn("Student with id {} not found", id);
+					return new ResourceNotFoundException("student", id);
+				});
 	}
 
 	private Pageable buildPageable(GridRequest request) {

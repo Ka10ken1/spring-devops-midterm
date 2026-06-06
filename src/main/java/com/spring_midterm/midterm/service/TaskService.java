@@ -10,6 +10,7 @@ import com.spring_midterm.midterm.exception.ResourceNotFoundException;
 import com.spring_midterm.midterm.repository.IRepository;
 import java.util.List;
 import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -18,6 +19,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+@Slf4j
 @Service
 public class TaskService implements ITaskService {
 
@@ -44,7 +46,9 @@ public class TaskService implements ITaskService {
 	public TaskResponse create(Long studentId, TaskRequest request) {
 		Task task = new Task();
 		updateTaskFields(task, studentId, request);
-		return toResponse(taskRepository.save(task));
+		TaskResponse response = toResponse(taskRepository.save(task));
+		log.info("Created task with id {} for student {}", task.getId(), studentId);
+		return response;
 	}
 
 	@Override
@@ -59,6 +63,7 @@ public class TaskService implements ITaskService {
 				.map(this::toResponse)
 				.toList();
 
+		log.debug("Task grid query for student {} returned {} results", studentId, items.size());
 		return new PageResponse<>(
 				items,
 				taskPage.getNumber(),
@@ -77,30 +82,40 @@ public class TaskService implements ITaskService {
 	public TaskResponse update(Long studentId, Long taskId, TaskRequest request) {
 		Task task = findTaskForStudent(studentId, taskId);
 		updateTaskFields(task, studentId, request);
-		return toResponse(taskRepository.save(task));
+		TaskResponse response = toResponse(taskRepository.save(task));
+		log.info("Updated task with id {} for student {}", taskId, studentId);
+		return response;
 	}
 
 	@Override
 	public void delete(Long studentId, Long taskId) {
 		Task task = findTaskForStudent(studentId, taskId);
 		taskRepository.delete(task);
+		log.info("Deleted task with id {} for student {}", taskId, studentId);
 	}
 
 	private Task findTask(Long id) {
 		return taskRepository.findById(id)
-				.orElseThrow(() -> new ResourceNotFoundException("Task with id " + id + " was not found"));
+				.orElseThrow(() -> {
+					log.warn("Task with id {} not found", id);
+					return new ResourceNotFoundException("task", id);
+				});
 	}
 
 	private Student findStudent(Long id) {
 		return studentRepository.findById(id)
-				.orElseThrow(() -> new ResourceNotFoundException("Student with id " + id + " was not found"));
+				.orElseThrow(() -> {
+					log.warn("Student with id {} not found", id);
+					return new ResourceNotFoundException("student", id);
+				});
 	}
 
 	private Task findTaskForStudent(Long studentId, Long taskId) {
 		findStudent(studentId);
 		Task task = findTask(taskId);
 		if (!task.getStudent().getId().equals(studentId)) {
-			throw new ResourceNotFoundException("Task with id " + taskId + " was not found for student " + studentId);
+			log.warn("Task with id {} not found for student {}", taskId, studentId);
+			throw new ResourceNotFoundException("task", taskId + " for student " + studentId);
 		}
 		return task;
 	}
