@@ -35,7 +35,6 @@ public class StudentService implements IService<StudentRequest, StudentResponse>
 
 	public StudentService(IRepository<Student> studentRepository) {
 		this.studentRepository = studentRepository;
-		
 	}
 
 	@Override
