@@ -11,6 +11,7 @@ import com.spring_midterm.midterm.repository.IRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -19,6 +20,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+@Slf4j
 @Service
 public class NoteService implements INoteService {
 
@@ -44,7 +46,9 @@ public class NoteService implements INoteService {
 		Note note = new Note();
 		note.setCreatedAt(LocalDateTime.now());
 		updateNoteFields(note, taskId, request);
-		return toResponse(noteRepository.save(note));
+		NoteResponse response = toResponse(noteRepository.save(note));
+		log.info("Created note with id {} for task {}", note.getId(), taskId);
+		return response;
 	}
 
 	@Override
@@ -57,6 +61,7 @@ public class NoteService implements INoteService {
 				.map(this::toResponse)
 				.toList();
 
+		log.debug("Note grid query for task {} returned {} results", taskId, items.size());
 		return new PageResponse<>(
 				items,
 				notePage.getNumber(),
@@ -75,30 +80,40 @@ public class NoteService implements INoteService {
 	public NoteResponse update(Long taskId, Long noteId, NoteRequest request) {
 		Note note = findNoteForTask(taskId, noteId);
 		updateNoteFields(note, taskId, request);
-		return toResponse(noteRepository.save(note));
+		NoteResponse response = toResponse(noteRepository.save(note));
+		log.info("Updated note with id {} for task {}", noteId, taskId);
+		return response;
 	}
 
 	@Override
 	public void delete(Long taskId, Long noteId) {
 		Note note = findNoteForTask(taskId, noteId);
 		noteRepository.delete(note);
+		log.info("Deleted note with id {} for task {}", noteId, taskId);
 	}
 
 	private Note findNote(Long id) {
 		return noteRepository.findById(id)
-				.orElseThrow(() -> new ResourceNotFoundException("Note with id " + id + " was not found"));
+				.orElseThrow(() -> {
+					log.warn("Note with id {} not found", id);
+					return new ResourceNotFoundException("note", id);
+				});
 	}
 
 	private Task findTask(Long id) {
 		return taskRepository.findById(id)
-				.orElseThrow(() -> new ResourceNotFoundException("Task with id " + id + " was not found"));
+				.orElseThrow(() -> {
+					log.warn("Task with id {} not found", id);
+					return new ResourceNotFoundException("task", id);
+				});
 	}
 
 	private Note findNoteForTask(Long taskId, Long noteId) {
 		findTask(taskId);
 		Note note = findNote(noteId);
 		if (!note.getTask().getId().equals(taskId)) {
-			throw new ResourceNotFoundException("Note with id " + noteId + " was not found for task " + taskId);
+			log.warn("Note with id {} not found for task {}", noteId, taskId);
+			throw new ResourceNotFoundException("note", noteId + " for task " + taskId);
 		}
 		return note;
 	}
