@@ -3,7 +3,7 @@ package com.spring_midterm.midterm;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.spring_midterm.midterm.dto.GridRequest;
+import com.spring_midterm.midterm.dto.request.GridRequest;
 import org.junit.jupiter.api.Test;
 
 class GridRequestTest {
