@@ -1,9 +1,9 @@
 package com.spring_midterm.midterm.service;
 
-import com.spring_midterm.midterm.dto.GridRequest;
-import com.spring_midterm.midterm.dto.PageResponse;
-import com.spring_midterm.midterm.dto.StudentRequest;
-import com.spring_midterm.midterm.dto.StudentResponse;
+import com.spring_midterm.midterm.dto.request.GridRequest;
+import com.spring_midterm.midterm.dto.response.PageResponse;
+import com.spring_midterm.midterm.dto.request.StudentRequest;
+import com.spring_midterm.midterm.dto.response.StudentResponse;
 
 public interface IStudentService {
     StudentResponse create(StudentRequest request);

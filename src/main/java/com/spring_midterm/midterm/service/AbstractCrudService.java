@@ -1,10 +1,10 @@
 package com.spring_midterm.midterm.service;
 
-import com.spring_midterm.midterm.dto.GridRequest;
-import com.spring_midterm.midterm.dto.PageResponse;
-import com.spring_midterm.midterm.helper.PaginationUtils;
-import com.spring_midterm.midterm.helper.RepositoryUtils;
+import com.spring_midterm.midterm.dto.request.GridRequest;
+import com.spring_midterm.midterm.dto.response.PageResponse;
 import com.spring_midterm.midterm.repository.IRepository;
+import com.spring_midterm.midterm.util.PaginationUtils;
+import com.spring_midterm.midterm.util.RepositoryUtils;
 import java.util.List;
 import java.util.Map;
 import org.springframework.data.domain.Page;
