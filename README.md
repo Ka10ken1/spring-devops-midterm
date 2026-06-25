@@ -11,30 +11,32 @@ This is a Spring Boot REST API for managing students, their tasks, and task note
 
 The application uses:
 
-- Spring Boot
-- Spring Web MVC
-- Spring Security
-- Thymeleaf
-- Spring Data JPA / Hibernate
-- PostgreSQL for the production profile
-- H2 for the dev profile, automated tests, and local development
-- Bean Validation
+- Java 21, Spring Boot 4.0.6, Maven
+- Spring Web MVC, Spring Security, Spring Data JPA / Hibernate
+- Thymeleaf for server-side UI rendering
+- PostgreSQL (production) / H2 (development, test)
+- Bean Validation (Jakarta Validation)
 - Spring Profiles and externalized configuration
-- Internationalization (i18n) for API error and validation messages
+- Internationalization (i18n) for API error and validation messages (English, Georgian)
 - Structured logging with SLF4J (Lombok `@Slf4j`) and Logback
-- Swagger UI
+- Swagger UI (springdoc-openapi)
+- Code coverage with JaCoCo 0.8.12
+- Custom `IRepository<T>` abstraction with `AbstractCrudService` base class and service interfaces
+- Static helper utilities (`PaginationUtils`, `RepositoryUtils`, `SpecificationHelper`, `OwnershipValidator`)
 - GitHub Actions CI
 
 ## Architecture
 
 The project follows a layered structure:
 
-- `controller`: REST endpoints
-- `service`: business logic
-- `repository`: database access
-- `entity`: JPA entities
+- `controller`: REST endpoints and Thymeleaf page controllers
+- `service`: business logic with `AbstractCrudService` base class and per-entity interfaces (`IStudentService`, `ITaskService`, `INoteService`)
+- `repository`: database access via `IRepository<T>` (extends `JpaRepository` + `JpaSpecificationExecutor`)
+- `entity`: JPA entities (`Student`, `Task`, `Note`)
 - `dto`: request and response models
-- `exception`: API error handling
+- `exception`: centralized error handling via `GlobalExceptionHandler` with i18n support
+- `helper`: reusable utilities (`PaginationUtils`, `RepositoryUtils`, `SpecificationHelper`, `OwnershipValidator`)
+- `advice`: cross-cutting concerns (`NavigationControllerAdvice` for Thymeleaf navigation model attributes)
 
 ## Domain Model
 
@@ -60,6 +62,20 @@ GET /health
 ```
 
 The `/health` endpoint is public and returns application status plus values from `AppSettings` (`title`, `contactEmail`, `paginationLimit`).
+
+### Monitoring Endpoints (custom Actuator)
+
+The application implements a custom actuator stack (no `spring-boot-starter-actuator`) under the `/actuator` prefix.
+
+| Endpoint | Access | Description |
+| --- | --- | --- |
+| `GET /actuator/health` | Public | DB reachability, disk space, JVM memory — via `AppHealthIndicator` |
+| `GET /actuator/info` | Public | App name, version, title, contact email, pagination limit, timestamp |
+| `GET /actuator/metrics` | `ADMIN` only | JVM heap, thread count, system load, DB entity counts, custom counters |
+| `GET /actuator/metrics/{name}` | `ADMIN` only | Single metric by name (returns 404 if unknown) |
+
+- `AppHealthIndicator` checks DB connectivity via `studentRepository.count()` and reports JVM memory info.
+- `MetricsService` exposes JVM metrics (`jvm.memory.heap.used`, `jvm.memory.heap.max`, `jvm.threads.live`, `system.load.average`), DB counts (`db.students.count`, `db.tasks.count`, `db.notes.count`), and custom in-memory counters.
 
 ## Profiles And Configuration
 
@@ -141,15 +157,32 @@ Logging is split across layers using SLF4J through Lombok's `@Slf4j`:
 | `GlobalExceptionHandler` | `WARN` for validation/not-found, `ERROR` for data integrity violations |
 | `DataInitializer` | `INFO` for dev seed data loading |
 
-Log configuration is defined in `logback-spring.xml`:
+### Logging Filter
 
-- Console and file appenders
-- File output: `logs/app.log`
-- Rolling policy: daily rotation with 10 MB size limit, 30-day retention
-- Profile-based levels:
-  - `dev`: `DEBUG`
-  - `prod`: `WARN`
-  - other profiles (including `test`): `INFO`
+`LoggingFilter` (a `OncePerRequestFilter`) injects `requestId` (UUID) and `username` into the MDC for every request. These are available in log patterns via `%X{requestId}` and `%X{username}`.
+
+### Logback Configuration
+
+Log configuration is defined in `logback-spring.xml` with profile-conditional appenders:
+
+| Profile | Appenders | Pattern |
+| --- | --- | --- |
+| `dev` | `CONSOLE` (stdout) + `ASYNC_FILE` (async wrapper) | Default Spring Boot console pattern |
+| `prod` | `PROD_FILE` (rolling file only) | Structured: `%d \| %level \| [%thread] \| %X{requestId} \| %X{username} \| %logger \| %msg` |
+| other | `CONSOLE` + `ASYNC_FILE` (same as `dev`) | Default Spring Boot console pattern |
+
+Rolling policies:
+- `dev`/other: `logs/app.log`, max 10 MB/file, 30-day history, 100 MB total cap
+- `prod`: `logs/app.log`, max 10 MB/file, 60-day history, 500 MB total cap
+
+Profile-based log levels:
+
+| Logger | `dev` | `prod` | other (`test`, etc.) |
+| --- | --- | --- | --- |
+| `com.spring_midterm.midterm` | `DEBUG` | `INFO` | `INFO` |
+| `org.springframework.security` | `DEBUG` | `WARN` | `INFO` |
+| `org.hibernate.SQL` | `DEBUG` | `WARN` | `INFO` |
+| Root | `INFO` | `WARN` | `INFO` |
 
 Watch logs while the app is running:
 
@@ -190,6 +223,8 @@ Public endpoints:
 ```http
 GET /
 GET /health
+GET /actuator/health
+GET /actuator/info
 GET /swagger-ui.html
 GET /swagger-ui/**
 GET /v3/api-docs/**
@@ -214,6 +249,8 @@ POST /admin/students/{id}/delete
 POST /api/students
 PUT /api/students/{id}
 DELETE /api/students/{id}
+GET /actuator/metrics
+GET /actuator/metrics/{name}
 ```
 
 Method-level security is enabled with `@EnableMethodSecurity`. The `/admin` page plus `StudentService.create` and `StudentService.delete` methods are restricted with `@PreAuthorize("hasRole('ADMIN')")`.
@@ -338,3 +375,17 @@ See the separate [DevOps Guide](docs/DEVOPS.md) for:
 - blue-green deployment
 - rollback
 - health monitoring
+
+## Submission Requirements
+
+| Requirement | Status |
+| --- | --- |
+| **README** | Comprehensive documentation covering all sections below |
+| **Project description** | REST API for managing students, tasks, and notes with layered architecture |
+| **Technologies** | Java 21, Spring Boot 4.0.6, Maven, Spring Web MVC, Spring Security, Spring Data JPA, H2/PostgreSQL, Thymeleaf, Swagger, JaCoCo |
+| **Run instructions** | `./mvnw spring-boot:run -Dspring-boot.run.profiles=dev` (dev) or `-Dspring-boot.run.profiles=prod` (prod) |
+| **User credentials** | `user` / `user123` (USER), `admin` / `admin123` (ADMIN + USER) |
+| **Testing instructions** | `./mvnw test` — 119 tests across unit, integration, validation, and slice test layers |
+| **Monitoring endpoints** | `/actuator/health` (public), `/actuator/info` (public), `/actuator/metrics` (ADMIN), `/actuator/metrics/{name}` (ADMIN), plus simplified `/health` (public) |
+| **Logging configuration** | SLF4J / Logback with profile-conditional appenders (CONSOLE + ASYNC_FILE for dev, PROD_FILE for prod), MDC enrichment via `LoggingFilter` (`requestId`, `username`) |
+| **Profile configuration** | `dev` (H2, DEBUG, seeded data), `prod` (PostgreSQL, WARN), `test` (H2, INFO) |

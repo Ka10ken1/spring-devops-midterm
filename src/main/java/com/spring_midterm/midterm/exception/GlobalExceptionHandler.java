@@ -11,6 +11,7 @@ import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -55,6 +56,22 @@ public class GlobalExceptionHandler {
 		String message = resolveConflictMessage(exception, locale);
 		log.error("Data integrity violation", exception);
 		return buildResponse(HttpStatus.CONFLICT, message);
+	}
+
+	@ExceptionHandler(AccessDeniedException.class)
+	public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException exception) {
+		log.warn("Access denied: {}", exception.getMessage());
+		Locale locale = LocaleContextHolder.getLocale();
+		String message = messageSource.getMessage("error.access.denied", null, locale);
+		return buildResponse(HttpStatus.FORBIDDEN, message);
+	}
+
+	@ExceptionHandler(Exception.class)
+	public ResponseEntity<ErrorResponse> handleGeneric(Exception exception) {
+		log.error("Unhandled exception", exception);
+		Locale locale = LocaleContextHolder.getLocale();
+		String message = messageSource.getMessage("error.internal", null, locale);
+		return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, message);
 	}
 
 	private String resolveConflictMessage(DataIntegrityViolationException exception, Locale locale) {

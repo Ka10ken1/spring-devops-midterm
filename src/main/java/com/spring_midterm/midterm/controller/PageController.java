@@ -11,10 +11,11 @@ import com.spring_midterm.midterm.dto.StudentResponse;
 import com.spring_midterm.midterm.dto.TaskRequest;
 import com.spring_midterm.midterm.dto.TaskResponse;
 import com.spring_midterm.midterm.service.INoteService;
-import com.spring_midterm.midterm.service.IService;
+import com.spring_midterm.midterm.service.IStudentService;
 import com.spring_midterm.midterm.service.ITaskService;
 import java.time.LocalDate;
 import java.security.Principal;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -26,15 +27,16 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+@Slf4j
 @Controller
 public class PageController {
 
-	private final IService<StudentRequest, StudentResponse> studentService;
+	private final IStudentService studentService;
 	private final ITaskService taskService;
 	private final INoteService noteService;
 
 	public PageController(
-			IService<StudentRequest, StudentResponse> studentService,
+			IStudentService studentService,
 			ITaskService taskService,
 			INoteService noteService
 	) {
@@ -45,16 +47,19 @@ public class PageController {
 
 	@GetMapping("/")
 	public String home() {
+		log.debug("Home page requested");
 		return "home";
 	}
 
 	@GetMapping("/login")
 	public String login() {
+		log.debug("Login page requested");
 		return "login";
 	}
 
 	@GetMapping("/profile")
 	public String profile(Model model, Principal principal) {
+		log.info("Profile page requested by {}", principal.getName());
 		PageResponse<StudentResponse> students = studentService.getGrid(grid(null, "firstName"));
 		model.addAttribute("username", principal.getName());
 		model.addAttribute("students", students.data());
@@ -65,6 +70,7 @@ public class PageController {
 	@GetMapping("/access-denied")
 	@ResponseStatus(HttpStatus.FORBIDDEN)
 	public String accessDenied() {
+		log.warn("Access denied page shown");
 		return "access-denied";
 	}
 
@@ -82,12 +88,14 @@ public class PageController {
 			@RequestParam String lastName,
 			@RequestParam String email
 	) {
+		log.info("Admin creating student: {} {} <{}>", firstName, lastName, email);
 		studentService.create(new StudentRequest(firstName, lastName, email));
 		return "redirect:/admin";
 	}
 
 	@GetMapping("/students/{studentId}")
 	public String studentDetails(@PathVariable Long studentId, Model model) {
+		log.info("Viewing student {} details", studentId);
 		model.addAttribute("student", studentService.getById(studentId));
 		model.addAttribute("tasks", taskService.getGrid(studentId, grid(null, "dueDate")).data());
 		return "student-detail";
@@ -107,6 +115,7 @@ public class PageController {
 
 	@GetMapping("/students/{studentId}/tasks/{taskId}")
 	public String taskDetails(@PathVariable Long studentId, @PathVariable Long taskId, Model model) {
+		log.info("Viewing task {} for student {}", taskId, studentId);
 		TaskResponse task = taskService.getById(studentId, taskId);
 		PageResponse<NoteResponse> notes = noteService.getGrid(taskId, grid(null, "createdAt"));
 		model.addAttribute("task", task);
@@ -116,6 +125,7 @@ public class PageController {
 
 	@PostMapping("/students/{studentId}/tasks/{taskId}/notes")
 	public String createNote(@PathVariable Long studentId, @PathVariable Long taskId, @RequestParam String content) {
+		log.info("Note created for task {} by student {}", taskId, studentId);
 		noteService.create(taskId, new NoteRequest(content));
 		return "redirect:/students/" + studentId + "/tasks/" + taskId;
 	}
@@ -123,6 +133,7 @@ public class PageController {
 	@GetMapping("/admin")
 	@PreAuthorize("hasRole('ADMIN')")
 	public String admin(Model model) {
+		log.info("Admin dashboard requested");
 		model.addAttribute("students", studentService.getGrid(grid(null, "firstName")).data());
 		return "admin";
 	}
@@ -130,6 +141,7 @@ public class PageController {
 	@PostMapping("/admin/students/{studentId}/delete")
 	@PreAuthorize("hasRole('ADMIN')")
 	public String deleteStudent(@PathVariable Long studentId) {
+		log.warn("Admin deleting student {}", studentId);
 		studentService.delete(studentId);
 		return "redirect:/admin";
 	}

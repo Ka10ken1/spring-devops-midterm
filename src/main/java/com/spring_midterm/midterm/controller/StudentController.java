@@ -1,10 +1,11 @@
 package com.spring_midterm.midterm.controller;
 
+import com.spring_midterm.midterm.actuator.IMetricsService;
 import com.spring_midterm.midterm.dto.GridRequest;
 import com.spring_midterm.midterm.dto.PageResponse;
 import com.spring_midterm.midterm.dto.StudentRequest;
 import com.spring_midterm.midterm.dto.StudentResponse;
-import com.spring_midterm.midterm.service.IService;
+import com.spring_midterm.midterm.service.IStudentService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -24,10 +25,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/students")
 public class StudentController {
 
-	private final IService<StudentRequest, StudentResponse> studentService;
+	private final IStudentService studentService;
+	private final IMetricsService metricsService;
 
-	public StudentController(IService<StudentRequest, StudentResponse> studentService) {
+	public StudentController(IStudentService studentService, IMetricsService metricsService) {
 		this.studentService = studentService;
+		this.metricsService = metricsService;
 	}
 
 	@PostMapping
@@ -35,6 +38,7 @@ public class StudentController {
 	@Operation(summary = "Create a student", description = "Adds a new student record.")
 	public StudentResponse createStudent(@Valid @RequestBody StudentRequest request) {
 		log.info("API request: create student with email {}", request.email());
+		metricsService.incrementCounter("api.student.create");
 		return studentService.create(request);
 	}
 
@@ -42,6 +46,7 @@ public class StudentController {
 	@Operation(summary = "Update a student", description = "Updates an existing student record.")
 	public StudentResponse updateStudent(@PathVariable Long id, @Valid @RequestBody StudentRequest request) {
 		log.info("API request: update student with id {}", id);
+		metricsService.incrementCounter("api.student.update");
 		return studentService.update(id, request);
 	}
 
@@ -50,6 +55,7 @@ public class StudentController {
 	@Operation(summary = "Delete a student", description = "Deletes a student record by id.")
 	public void deleteStudent(@PathVariable Long id) {
 		log.info("API request: delete student with id {}", id);
+		metricsService.incrementCounter("api.student.delete");
 		studentService.delete(id);
 	}
 

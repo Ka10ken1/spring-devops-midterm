@@ -1,5 +1,6 @@
 package com.spring_midterm.midterm.controller;
 
+import com.spring_midterm.midterm.actuator.IMetricsService;
 import com.spring_midterm.midterm.dto.GridRequest;
 import com.spring_midterm.midterm.dto.NoteRequest;
 import com.spring_midterm.midterm.dto.NoteResponse;
@@ -25,9 +26,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class NoteController {
 
 	private final INoteService noteService;
+	private final IMetricsService metricsService;
 
-	public NoteController(INoteService noteService) {
+	public NoteController(INoteService noteService, IMetricsService metricsService) {
 		this.noteService = noteService;
+		this.metricsService = metricsService;
 	}
 
 	@PostMapping
@@ -35,6 +38,7 @@ public class NoteController {
 	@Operation(summary = "Create a note", description = "Adds a new note and attaches it to a task.")
 	public NoteResponse createNote(@PathVariable Long taskId, @Valid @RequestBody NoteRequest request) {
 		log.info("API request: create note for task {}", taskId);
+		metricsService.incrementCounter("api.note.create");
 		return noteService.create(taskId, request);
 	}
 
@@ -46,6 +50,7 @@ public class NoteController {
 		@Valid @RequestBody NoteRequest request
 	) {
 		log.info("API request: update note {} for task {}", noteId, taskId);
+		metricsService.incrementCounter("api.note.update");
 		return noteService.update(taskId, noteId, request);
 	}
 
@@ -54,6 +59,7 @@ public class NoteController {
 	@Operation(summary = "Delete a note", description = "Deletes a note record by id.")
 	public void deleteNote(@PathVariable Long taskId, @PathVariable Long noteId) {
 		log.info("API request: delete note {} for task {}", noteId, taskId);
+		metricsService.incrementCounter("api.note.delete");
 		noteService.delete(taskId, noteId);
 	}
 

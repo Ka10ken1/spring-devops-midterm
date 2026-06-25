@@ -1,5 +1,6 @@
 package com.spring_midterm.midterm.controller;
 
+import com.spring_midterm.midterm.actuator.IMetricsService;
 import com.spring_midterm.midterm.dto.GridRequest;
 import com.spring_midterm.midterm.dto.PageResponse;
 import com.spring_midterm.midterm.dto.TaskRequest;
@@ -25,9 +26,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class TaskController {
 
 	private final ITaskService taskService;
+	private final IMetricsService metricsService;
 
-	public TaskController(ITaskService taskService) {
+	public TaskController(ITaskService taskService, IMetricsService metricsService) {
 		this.taskService = taskService;
+		this.metricsService = metricsService;
 	}
 
 	@PostMapping
@@ -35,6 +38,7 @@ public class TaskController {
 	@Operation(summary = "Create a task", description = "Adds a new task and assigns it to a student.")
 	public TaskResponse createTask(@PathVariable Long studentId, @Valid @RequestBody TaskRequest request) {
 		log.info("API request: create task for student {}", studentId);
+		metricsService.incrementCounter("api.task.create");
 		return taskService.create(studentId, request);
 	}
 
@@ -46,6 +50,7 @@ public class TaskController {
 			@Valid @RequestBody TaskRequest request
 	) {
 		log.info("API request: update task {} for student {}", taskId, studentId);
+		metricsService.incrementCounter("api.task.update");
 		return taskService.update(studentId, taskId, request);
 	}
 
@@ -54,6 +59,7 @@ public class TaskController {
 	@Operation(summary = "Delete a task", description = "Deletes a task record by id.")
 	public void deleteTask(@PathVariable Long studentId, @PathVariable Long taskId) {
 		log.info("API request: delete task {} for student {}", taskId, studentId);
+		metricsService.incrementCounter("api.task.delete");
 		taskService.delete(studentId, taskId);
 	}
 
