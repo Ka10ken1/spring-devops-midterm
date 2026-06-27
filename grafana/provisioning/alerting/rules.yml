@@ -1,0 +1,46 @@
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: spring-app
+    folder: Midterm Observability
+    interval: 1m
+    rules:
+      - uid: high-error-rate
+        title: High Application Error Rate (CRITICAL)
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: increase(app_errors_total[1m])
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              refId: B
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    params: [5]
+                    type: gt
+              refId: C
+        noDataState: NoData
+        execErrState: Error
+        for: 0s
+        annotations:
+          summary: CRITICAL - error rate above 5 per minute
+          description: Application errors exceeded the configured threshold.
+        labels:
+          severity: critical
+        isPaused: false

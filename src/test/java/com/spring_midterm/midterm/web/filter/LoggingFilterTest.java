@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.matches;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -17,7 +18,7 @@ import org.slf4j.MDC;
 @ExtendWith(MockitoExtension.class)
 class LoggingFilterTest {
 
-    private final LoggingFilter filter = new LoggingFilter();
+    private final LoggingFilter filter;
 
     @Mock
     private HttpServletRequest request;
@@ -27,6 +28,11 @@ class LoggingFilterTest {
 
     @Mock
     private FilterChain filterChain;
+
+    LoggingFilterTest() {
+        PrometheusMeterRegistry meterRegistry = new PrometheusMeterRegistry(io.micrometer.prometheusmetrics.PrometheusConfig.DEFAULT);
+        this.filter = new LoggingFilter(meterRegistry);
+    }
 
     @Test
     void shouldSetRequestIdFromHeader() throws Exception {

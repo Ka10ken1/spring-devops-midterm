@@ -12,6 +12,10 @@
 - Git and GitHub
 - GitHub Actions
 - Bash scripts for automation, deployment, rollback, and monitoring
+- Docker / Docker Compose
+- Prometheus + Grafana for metrics and dashboards
+- Loki + Promtail for log aggregation
+- OWASP Dependency Check, Trivy, GitLeaks for security scanning
 - Swagger UI
 
 ## Branches
@@ -250,6 +254,67 @@ Example log line:
 2026-05-01T12:41:43Z status=UP env=green port=8082 response={"application":"midterm","timestamp":"2026-05-01T12:41:43Z","status":"UP"}
 ```
 
+## Actuator Endpoints
+
+The project exposes two sets of actuator endpoints:
+
+### Custom Actuator (`/actuator/*`)
+
+| Endpoint | Access | Description |
+| --- | --- | --- |
+| `GET /actuator/health` | Public | Custom health check (DB reachability, JVM memory) |
+| `GET /actuator/info` | Public | Application metadata (version, title, contact) |
+| `GET /actuator/metrics` | ADMIN | JVM metrics, DB entity counts, custom counters |
+| `GET /actuator/metrics/{name}` | ADMIN | Single metric by name |
+
+### Spring Boot Actuator (`/manage/*`)
+
+| Endpoint | Access | Description |
+| --- | --- | --- |
+| `GET /manage/health` | Public | Standard Spring Boot health (from `spring-boot-starter-actuator`) |
+| `GET /manage/info` | Public | Standard Spring Boot info |
+| `GET /manage/metrics` | ADMIN | Micrometer metrics (JVM, HikariCP, system, custom) |
+| `GET /manage/prometheus` | Public | Prometheus scrape endpoint |
+
+## Incident Response
+
+### Alert severity levels
+
+| Severity | Example | Response |
+| --- | --- | --- |
+| CRITICAL | Error rate > 5/min for 1m | Immediate investigation; rollback if deployment-related |
+| WARNING | High JVM heap usage > 80% | Monitor during office hours; investigate root cause |
+| INFO | Health check failure recovered | No action required; logged for audit |
+
+### Runbook
+
+**1. Application down / returns 5xx**
+- Check health endpoint: `curl http://localhost:8080/actuator/health`
+- Check logs: `tail -f logs/app.log`
+- Check Docker containers: `docker compose ps`
+- If deployment-related: `./scripts/rollback.sh`
+- If DB-related: `docker compose logs postgres`
+
+**2. High error rate alert fires**
+- Check Grafana dashboard for error spike patterns
+- Query Loki for error-level logs: `{container="spring-devops-app"} \| json \| level="ERROR"`
+- Identify whether it's a specific endpoint failing
+- If caused by recent deploy: rollback, fix, redeploy
+
+**3. Prometheus / Grafana unreachable**
+- Check monitoring containers: `docker compose ps prometheus grafana`
+- Restart if needed: `docker compose restart prometheus grafana`
+- Check config files for syntax errors
+
+### Service Availability Objectives
+
+| Metric | Target | Measured by |
+| --- | --- | --- |
+| Uptime | > 99.5% | Health monitor script |
+| API error rate | < 1% of requests | `increase(app_errors_total[1m])` |
+| Health check pass rate | 100% of probes | `/actuator/health` monitoring |
+| Alert response time | < 30 minutes | Incident log |
+
 ### Successful CI Pipeline
 
 Show GitHub Actions passing after a push or pull request.
@@ -308,6 +373,147 @@ tail -f /tmp/midterm-production/logs/health-check.log
 ```
 
 ![Monitoring logs](../images/monitoring-log.png)
+
+## Docker Compose Observability Stack
+
+The project includes a full observability stack via Docker Compose for one-command environment setup.
+
+### Services
+
+| Service | Image | Purpose |
+| --- | --- | --- |
+| `postgres` | postgres:16-alpine | Production database |
+| `app` | Build from `Dockerfile` | Spring Boot application (docker profile) |
+| `prometheus` | prom/prometheus:v2.54.1 | Metrics collection + alert evaluation |
+| `grafana` | grafana/grafana:11.2.2 | Metrics + log dashboards, unified alerting |
+| `loki` | grafana/loki:3.2.1 | Log storage and query engine |
+| `promtail` | grafana/promtail:3.2.1 | Log shipping from Docker containers to Loki |
+
+### Start the stack
+
+```bash
+docker compose up --build -d
+```
+
+### Access the services
+
+- App: http://localhost:8080
+- Prometheus: http://localhost:9090
+- Grafana: http://localhost:3000 (`admin` / `admin`)
+- Loki: http://localhost:3100 (API only)
+
+### Grafana dashboard
+
+A pre-loaded dashboard ("Spring Boot App Observability") includes:
+
+- **App Requests Total** — cumulative request count (Prometheus)
+- **App Errors Total** — cumulative error count (Prometheus)
+- **Error Rate (1m window)** — stat panel, alert threshold at 5 (Prometheus)
+- **JVM Heap Usage** — heap memory over time (Micrometer + Prometheus)
+- **JVM Threads** — live thread count (Micrometer + Prometheus)
+- **System CPU Usage** — CPU usage (Micrometer + Prometheus)
+- **DB Connection Pool** — HikariCP active/idle/pending connections (Micrometer + Prometheus)
+- **Application JSON Logs** — real-time log viewer (Loki)
+
+![Grafana dashboard](../images/grafana-dashboard.png)
+
+### Prometheus metrics endpoints
+
+| Endpoint | Auth | Description |
+| --- | --- | --- |
+| `/actuator/prometheus` | Public | Prometheus scrape endpoint (Micrometer) |
+
+Custom counters registered by `LoggingFilter`:
+
+- `app_requests_total` — incremented on every HTTP request
+- `app_errors_total` — incremented on HTTP 4xx/5xx responses
+
+Built-in Micrometer metrics also available: JVM memory, threads, garbage collection, HikariCP pool, system load.
+
+### Prometheus alerting
+
+Alert rule in `prometheus/alerts.yml`:
+
+```yaml
+alert: HighApplicationErrorRate
+expr: increase(app_errors_total[1m]) > 5
+severity: critical
+```
+
+Grafana Unified Alerting mirrors the same rule with a visual alerting UI.
+
+Trigger the alert:
+
+```bash
+./scripts/trigger-alert.sh
+```
+
+Check firing alerts:
+- Prometheus: http://localhost:9090/alerts
+- Grafana: Alerting → Groups → Midterm Observability
+
+![Grafana alerts](../images/grafana-alerts.png)
+
+### Logging pipeline
+
+```
+App (stdout JSON) → Docker json-file → Promtail → Loki → Grafana
+```
+
+The app uses `net.logstash.logback:logstash-logback-encoder` with the `docker` profile to output structured JSON logs (level, message, logger, requestId, username) to stdout. Promtail discovers the container via the Docker socket and ships logs to Loki.
+
+Query logs in Grafana Explore:
+
+```logql
+{container="spring-devops-app"}
+```
+
+Filter by level:
+
+```logql
+{container="spring-devops-app"} | json | level="ERROR"
+```
+
+![Grafana Loki logs](../images/grafana-loki.png)
+
+## Security Scanning
+
+Security checks are integrated into the CI/CD pipeline.
+
+### OWASP Dependency Check
+
+The `dependency-check-maven` plugin scans all Maven dependencies for known vulnerabilities (CVEs). It runs during the CI workflow and generates HTML + JSON reports.
+
+```bash
+./mvnw dependency-check:check
+```
+
+Reports are written to `target/dependency-check-report.html`.
+
+### Trivy Filesystem Scan
+
+Trivy scans the entire project filesystem for vulnerabilities in dependencies, config files, and scripts. It runs as a separate CI job.
+
+```bash
+trivy fs .
+```
+
+### GitLeaks Secrets Scan
+
+GitLeaks scans the repository for accidentally committed secrets, API keys, and credentials. It runs on every push and pull request.
+
+```bash
+gitleaks detect --source . -v
+```
+
+### CI Security Workflow
+
+```text
+Push / PR → Lint → Test → OWASP Dependency Check (Maven)
+         → Build JAR → Trivy filesystem scan → GitLeaks secrets scan
+```
+
+The CI workflow includes two parallel jobs: `test-and-lint` (lint, test, OWASP) and `security-scan` (build, Trivy, GitLeaks).
 
 ## Troubleshooting
 

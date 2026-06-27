@@ -1,0 +1,8 @@
+# GitLeaks configuration - extend rules as needed
+
+[allowlist]
+paths = [
+  '''(^|/)target/''',
+  '''(^|/)\.mvn/''',
+  '''\.gitignore''',
+]
