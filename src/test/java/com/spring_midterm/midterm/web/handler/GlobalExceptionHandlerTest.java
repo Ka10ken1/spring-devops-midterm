@@ -20,6 +20,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -102,5 +103,33 @@ class GlobalExceptionHandlerTest {
         assertNotNull(response.getBody());
         assertEquals(409, response.getBody().status());
         assertEquals("Record already exists or violates a database constraint", response.getBody().message());
+    }
+
+    @Test
+    void handleAccessDenied_shouldReturn403() {
+        AccessDeniedException ex = new AccessDeniedException("Access is denied");
+        when(messageSource.getMessage(eq("error.access.denied"), any(), any(Locale.class)))
+                .thenReturn("Access denied");
+
+        ResponseEntity<ErrorResponse> response = handler.handleAccessDenied(ex);
+
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(403, response.getBody().status());
+        assertEquals("Access denied", response.getBody().message());
+    }
+
+    @Test
+    void handleGeneric_shouldReturn500() {
+        Exception ex = new RuntimeException("Unexpected error");
+        when(messageSource.getMessage(eq("error.internal"), any(), any(Locale.class)))
+                .thenReturn("Internal server error");
+
+        ResponseEntity<ErrorResponse> response = handler.handleGeneric(ex);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(500, response.getBody().status());
+        assertEquals("Internal server error", response.getBody().message());
     }
 }

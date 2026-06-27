@@ -146,6 +146,22 @@ class TaskServiceTest {
     }
 
     @Test
+    void getGrid_withNullFilter_shouldReturnAll() {
+        Student student = createStudent(1L);
+        Task task = createTask(1L, student);
+
+        GridRequest gridRequest = new GridRequest(0, 10, null, new SortingRequest(1, "title"));
+        PageImpl<Task> page = new PageImpl<>(List.of(task));
+
+        when(taskRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(page);
+
+        PageResponse<TaskResponse> result = taskService.getGrid(1L, gridRequest);
+
+        assertEquals(1, result.totalElements());
+        assertEquals("Test Task", result.data().getFirst().title());
+    }
+
+    @Test
     void update_shouldReturnUpdatedTaskResponse() {
         Student student = createStudent(1L);
         Task existing = createTask(1L, student);

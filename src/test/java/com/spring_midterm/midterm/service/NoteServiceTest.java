@@ -142,6 +142,22 @@ class NoteServiceTest {
     }
 
     @Test
+    void getGrid_withNullFilter_shouldReturnAll() {
+        Task task = createTask(1L);
+        Note note = createNote(1L, task);
+
+        GridRequest gridRequest = new GridRequest(0, 10, null, new SortingRequest(1, "createdAt"));
+        PageImpl<Note> page = new PageImpl<>(List.of(note));
+
+        when(noteRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(page);
+
+        PageResponse<NoteResponse> result = noteService.getGrid(1L, gridRequest);
+
+        assertEquals(1, result.totalElements());
+        assertEquals("Test content", result.data().getFirst().content());
+    }
+
+    @Test
     void update_shouldReturnUpdatedNoteResponse() {
         Task task = createTask(1L);
         Note existing = createNote(1L, task);
