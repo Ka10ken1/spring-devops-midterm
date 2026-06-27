@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Access denied | Midterm/Finals Hub</title>
+	<link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body class="auth-page">
+	<main class="auth-card error-card">
+		<p class="eyebrow">403 Forbidden</p>
+		<h1>Admin access required</h1>
+		<p class="muted">Your account is signed in, but this area is restricted to users with the ADMIN role.</p>
+		<div class="actions error-actions">
+			<a class="button primary" th:href="@{/profile}">Back to dashboard</a>
+			<a class="button secondary" th:href="@{/students}">View students</a>
+		</div>
+	</main>
+</body>
+</html>

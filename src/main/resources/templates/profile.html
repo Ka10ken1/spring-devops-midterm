@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Dashboard | Midterm/Finals Hub</title>
+	<link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+	<header class="topbar">
+		<a class="brand" th:href="@{/}">Midterm/Finals Hub</a>
+		<nav class="nav-links">
+			<a th:href="@{/students}">Students</a>
+			<a th:if="${isAdmin}" th:href="@{/admin}">Admin</a>
+			<a th:href="@{/swagger-ui.html}">API Docs</a>
+			<form th:action="@{/logout}" method="post">
+				<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+				<button class="link-button" type="submit">Logout</button>
+			</form>
+		</nav>
+	</header>
+
+	<main class="container">
+		<section class="panel hero-panel">
+			<div>
+				<p class="eyebrow">Authenticated Dashboard</p>
+				<h1 th:text="'Hello, ' + ${username} + '!'">Hello, user!</h1>
+				<p class="lead">This page is only available after login.</p>
+			</div>
+			<div class="stat">
+				<span th:text="${studentCount}">0</span>
+				<small>students tracked</small>
+			</div>
+		</section>
+
+		<section class="section-heading">
+			<div>
+				<p class="eyebrow">Quick Access</p>
+				<h2>Recent students</h2>
+			</div>
+			<a class="button secondary" th:href="@{/students}">Manage students</a>
+		</section>
+
+		<div class="cards-list" th:if="${!students.isEmpty()}">
+			<a class="row-card" th:each="student : ${students}" th:href="@{/students/{id}(id=${student.id})}">
+				<div>
+					<strong th:text="${student.firstName + ' ' + student.lastName}">Student Name</strong>
+					<span th:text="${student.email}">student@example.com</span>
+				</div>
+				<span class="pill">View tasks</span>
+			</a>
+		</div>
+		<p class="empty-state" th:if="${students.isEmpty()}">No students yet. Add one from the students page.</p>
+	</main>
+</body>
+</html>

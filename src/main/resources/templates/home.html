@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Midterm Student Hub</title>
+	<link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body class="landing-page">
+	<header class="hero">
+		<nav class="nav">
+			<a class="brand" th:href="@{/}">Midterm/Finals Hub</a>
+			<div class="nav-links">
+				<a th:href="@{/login}">Login</a>
+				<a th:href="@{/swagger-ui.html}">Swagger</a>
+				<a th:href="@{/health}">Health</a>
+			</div>
+		</nav>
+		<section class="hero-shell">
+			<div class="hero-copy">
+				<p class="eyebrow">Spring Security Midterm</p>
+				<h1>A secured student task manager.</h1>
+				<p class="lead">Login with role-based access, manage students as an admin, and assign tasks as a regular user.</p>
+				<div class="actions">
+					<a class="button primary" th:href="@{/login}">Sign in</a>
+					<a class="button secondary" th:href="@{/swagger-ui.html}">View API docs</a>
+				</div>
+			</div>
+			<aside class="hero-preview">
+				<p class="eyebrow">Demo Accounts</p>
+				<div class="preview-row">
+					<span>USER</span>
+					<strong>user / user123</strong>
+				</div>
+				<div class="preview-row">
+					<span>ADMIN</span>
+					<strong>admin / admin123</strong>
+				</div>
+				<div class="preview-footer">
+					<span>BCrypt passwords</span>
+					<span>CSRF forms</span>
+				</div>
+			</aside>
+		</section>
+	</header>
+
+	<main class="container feature-list">
+		<article class="feature-item">
+			<span>01</span>
+			<div>
+				<h2>Public pages</h2>
+				<p>Landing page, health check, and Swagger docs remain open for quick inspection.</p>
+			</div>
+		</article>
+		<article class="feature-item">
+			<span>02</span>
+			<div>
+				<h2>User workflow</h2>
+				<p>Regular users can browse existing students and assign tasks through protected pages.</p>
+			</div>
+		</article>
+		<article class="feature-item">
+			<span>03</span>
+			<div>
+				<h2>Admin controls</h2>
+				<p>Admins get role-restricted student creation and deletion from the admin dashboard.</p>
+			</div>
+		</article>
+	</main>
+</body>
+</html>
