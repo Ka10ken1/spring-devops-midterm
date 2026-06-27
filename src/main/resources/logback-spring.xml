@@ -5,6 +5,23 @@
 
 	<property name="LOG_FILE" value="${LOG_FILE:-logs/app}"/>
 
+	<springProfile name="docker">
+		<appender name="JSON_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+			<encoder class="net.logstash.logback.encoder.LogstashEncoder">
+				<includeMdcKeyName>requestId</includeMdcKeyName>
+				<includeMdcKeyName>username</includeMdcKeyName>
+			</encoder>
+		</appender>
+
+		<logger name="com.spring_midterm.midterm" level="INFO"/>
+		<logger name="org.springframework.security" level="WARN"/>
+		<logger name="org.hibernate.SQL" level="WARN"/>
+
+		<root level="WARN">
+			<appender-ref ref="JSON_CONSOLE"/>
+		</root>
+	</springProfile>
+
 	<springProfile name="prod">
 		<appender name="PROD_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
 			<file>${LOG_FILE}.log</file>

@@ -23,7 +23,11 @@ The application uses:
 - Code coverage with JaCoCo 0.8.12
 - Custom `IRepository<T>` abstraction with `AbstractCrudService` base class and service interfaces
 - Static helper utilities (`PaginationUtils`, `RepositoryUtils`, `SpecificationHelper`, `OwnershipValidator`)
-- GitHub Actions CI
+- GitHub Actions CI with lint, test, dependency check, Trivy, and GitLeaks
+- Docker / Docker Compose for containerized deployment
+- Prometheus + Grafana for monitoring and alerting
+- Loki + Promtail for centralized log aggregation
+- OWASP Dependency Check, Trivy, GitLeaks for security scanning
 
 ## Architecture
 
@@ -337,6 +341,36 @@ CREATE DATABASE spring_boot_db;
 
 Adjust credentials in `src/main/resources/application-prod.properties` if your local PostgreSQL settings differ.
 
+## Run with Docker (full observability stack)
+
+Start the app, PostgreSQL, and the full observability stack:
+
+```bash
+docker compose up --build -d
+```
+
+Services:
+- App → http://localhost:8080
+- Prometheus → http://localhost:9090
+- Grafana → http://localhost:3000 (`admin` / `admin`)
+- Loki → http://localhost:3100
+
+The app runs with the `docker` profile (PostgreSQL, JSON logging, WARN level) and exposes `/actuator/prometheus` for Prometheus scraping.
+
+Generate traffic to see metrics in Grafana:
+
+```bash
+./scripts/generate-traffic.sh 30
+```
+
+Trigger the CRITICAL alert:
+
+```bash
+./scripts/trigger-alert.sh
+```
+
+Check the alert at http://localhost:9090/alerts or in Grafana → Alerting.
+
 ## Run Locally
 
 Development (H2, seeded data, DEBUG logging):
@@ -375,6 +409,8 @@ See the separate [DevOps Guide](docs/DEVOPS.md) for:
 - blue-green deployment
 - rollback
 - health monitoring
+- Docker Compose observability stack
+- Security scanning (OWASP, Trivy, GitLeaks)
 
 ## Submission Requirements
 
@@ -383,9 +419,14 @@ See the separate [DevOps Guide](docs/DEVOPS.md) for:
 | **README** | Comprehensive documentation covering all sections below |
 | **Project description** | REST API for managing students, tasks, and notes with layered architecture |
 | **Technologies** | Java 21, Spring Boot 4.0.6, Maven, Spring Web MVC, Spring Security, Spring Data JPA, H2/PostgreSQL, Thymeleaf, Swagger, JaCoCo |
-| **Run instructions** | `./mvnw spring-boot:run -Dspring-boot.run.profiles=dev` (dev) or `-Dspring-boot.run.profiles=prod` (prod) |
+| **Run instructions** | `./mvnw spring-boot:run -Dspring-boot.run.profiles=dev` (dev), `-Dspring-boot.run.profiles=prod` (prod), or `docker compose up --build -d` (full stack) |
 | **User credentials** | `user` / `user123` (USER), `admin` / `admin123` (ADMIN + USER) |
 | **Testing instructions** | `./mvnw test` — 119 tests across unit, integration, validation, and slice test layers |
-| **Monitoring endpoints** | `/actuator/health` (public), `/actuator/info` (public), `/actuator/metrics` (ADMIN), `/actuator/metrics/{name}` (ADMIN), plus simplified `/health` (public) |
-| **Logging configuration** | SLF4J / Logback with profile-conditional appenders (CONSOLE + ASYNC_FILE for dev, PROD_FILE for prod), MDC enrichment via `LoggingFilter` (`requestId`, `username`) |
-| **Profile configuration** | `dev` (H2, DEBUG, seeded data), `prod` (PostgreSQL, WARN), `test` (H2, INFO) |
+| **Monitoring endpoints** | `/actuator/health` (public), `/actuator/info` (public), `/actuator/metrics` (ADMIN), `/actuator/metrics/{name}` (ADMIN), `/actuator/prometheus` (public), plus simplified `/health` (public) — Prometheus scrapes `/actuator/prometheus` |
+| **Logging configuration** | SLF4J / Logback with profile-conditional appenders (CONSOLE + ASYNC_FILE for dev, PROD_FILE for prod, JSON_CONSOLE for docker), MDC enrichment via `LoggingFilter` (`requestId`, `username`). Loki + Promtail for centralized log aggregation |
+| **Profile configuration** | `dev` (H2, DEBUG, seeded data), `prod` (PostgreSQL, WARN), `test` (H2, INFO), `docker` (PostgreSQL via Docker Compose, JSON stdout, WARN) |
+| **Monitoring / Observability** | Prometheus metrics via Micrometer (`app_requests_total`, `app_errors_total`, JVM metrics, HikariCP pool). Pre-loaded Grafana dashboard with app metrics, JVM heap, threads, CPU, DB pool, and Loki log panel. Custom actuator at `/actuator/*`, Spring Boot Actuator at `/manage/*` |
+| **Alerting** | Prometheus alert rule: `increase(app_errors_total[1m]) > 5` → CRITICAL. Also configured in Grafana Unified Alerting. Severity levels: CRITICAL / WARNING / INFO with runbook |
+| **Reliability** | Blue-green deployment, rollback script, health monitor daemon, incident response runbook, service availability objectives (uptime > 99.5%, error rate < 1%) |
+| **Security scanning** | OWASP Dependency Check (CI), Trivy filesystem scan (CI), GitLeaks secrets scan (CI) |
+| **Docker setup** | Multi-stage `Dockerfile`, `docker-compose.yml` with PostgreSQL, Prometheus, Grafana, Loki, Promtail. Run with `docker compose up --build -d` |

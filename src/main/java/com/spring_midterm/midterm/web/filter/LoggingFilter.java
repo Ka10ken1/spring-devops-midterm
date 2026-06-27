@@ -1,5 +1,7 @@
 package com.spring_midterm.midterm.web.filter;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,6 +21,14 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class LoggingFilter extends OncePerRequestFilter {
 
     private static final String REQUEST_ID_HEADER = "X-Request-Id";
+
+    private final Counter requestCounter;
+    private final Counter errorCounter;
+
+    public LoggingFilter(MeterRegistry meterRegistry) {
+        this.requestCounter = meterRegistry.counter("app_requests_total");
+        this.errorCounter = meterRegistry.counter("app_errors_total");
+    }
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain)
@@ -42,7 +52,12 @@ public class LoggingFilter extends OncePerRequestFilter {
         try {
             filterChain.doFilter(request, response);
         } finally {
-            log.debug("Response: {} {} -> {}", request.getMethod(), request.getRequestURI(), response.getStatus());
+            int status = response.getStatus();
+            log.debug("Response: {} {} -> {}", request.getMethod(), request.getRequestURI(), status);
+            requestCounter.increment();
+            if (status >= 400) {
+                errorCounter.increment();
+            }
             MDC.clear();
         }
     }
