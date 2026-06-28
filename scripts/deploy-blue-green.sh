@@ -44,10 +44,18 @@ echo $! > "$PROD_ROOT/$NEXT/app.pid"
 
 for attempt in {1..30}; do
 	if curl -fsS "http://localhost:$NEXT_PORT/health" >/dev/null 2>&1; then
-		echo "$CURRENT" > "$PROD_ROOT/shared/previous"
-		echo "$NEXT" > "$PROD_ROOT/shared/current"
-		echo "Deployment successful. Active environment: $NEXT on port $NEXT_PORT"
-		exit 0
+		echo "Health check passed for $NEXT."
+		echo "Running post-deployment smoke tests..."
+		if "$ROOT_DIR/scripts/smoke-test.sh" "http://localhost:$NEXT_PORT"; then
+			echo "$CURRENT" > "$PROD_ROOT/shared/previous"
+			echo "$NEXT" > "$PROD_ROOT/shared/current"
+			echo "Deployment successful. Active environment: $NEXT on port $NEXT_PORT"
+			exit 0
+		else
+			echo "Smoke tests failed for $NEXT. Rolling back..."
+			kill "$(cat "$PROD_ROOT/$NEXT/app.pid")" 2>/dev/null || true
+			exit 1
+		fi
 	fi
 	sleep 2
 done

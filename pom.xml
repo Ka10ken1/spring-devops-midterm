@@ -163,13 +163,13 @@
 				<artifactId>dependency-check-maven</artifactId>
 				<version>10.0.4</version>
 				<configuration>
-					<skip>true</skip>
-					<nvdApiKeyIsRequired>false</nvdApiKeyIsRequired>
-					<formats>
-						<format>HTML</format>
-						<format>JSON</format>
-					</formats>
-					<failBuildOnCVSS>11</failBuildOnCVSS>
+				<skip>false</skip>
+				<nvdApiKeyIsRequired>false</nvdApiKeyIsRequired>
+				<formats>
+					<format>HTML</format>
+					<format>JSON</format>
+				</formats>
+				<failBuildOnCVSS>7</failBuildOnCVSS>
 				</configuration>
 			</plugin>
 		</plugins>

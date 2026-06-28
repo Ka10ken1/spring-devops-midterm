@@ -1,11 +1,13 @@
 apiVersion: 1
 
+# Email contact point — requires SMTP to be configured in Grafana.
+# Uncomment the SMTP env vars in docker-compose.yml and set valid credentials.
 contactPoints:
   - orgId: 1
     name: default-email
     receivers:
       - uid: default-receiver
-        type: webhook
+        type: email
         settings:
-          url: http://127.0.0.1:1
-        disableResolveMessage: true
+          addresses: admin@example.com
+        disableResolveMessage: false

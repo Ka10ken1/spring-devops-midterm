@@ -19,6 +19,14 @@ jobs:
           java-version: "21"
           cache: maven
 
+      - name: Lint Dockerfile
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile
+
+      - name: Validate Docker Compose
+        run: docker compose config
+
       - name: Lint
         run: ./scripts/lint.sh
 
@@ -26,7 +34,7 @@ jobs:
         run: ./mvnw test
 
       - name: OWASP Dependency Check
-        run: ./mvnw dependency-check:check -DskipTests
+        run: ./mvnw dependency-check:check -DskipTests -DfailBuildOnCVSS=7
 
   security-scan:
     runs-on: ubuntu-latest
@@ -47,13 +55,28 @@ jobs:
       - name: Build JAR
         run: ./mvnw package -DskipTests
 
+      - name: Build Docker image
+        run: docker build -t midterm-app:latest .
+
       - name: Run Trivy vulnerability scanner (filesystem)
         uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: fs
           scan-ref: .
           format: table
-          exit-code: "0"
+          exit-code: "1"
+          severity: CRITICAL,HIGH
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run Trivy vulnerability scanner (container image)
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: image
+          scan-ref: midterm-app:latest
+          format: table
+          exit-code: "1"
+          severity: CRITICAL,HIGH
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
