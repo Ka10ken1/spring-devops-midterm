@@ -1,0 +1,12 @@
+# Suppress Go binary (pebble) vulns in the Ubuntu base image of eclipse-temurin:21-jre.
+# These are OS-level Go toolchain findings inside the JRE Docker image, not in our
+# Java application code. The pebble binary is never executed by the Spring Boot app.
+CVE-2026-25680
+CVE-2026-25681
+CVE-2026-27136
+CVE-2026-33814
+CVE-2026-39821
+CVE-2026-42502
+CVE-2026-42506
+CVE-2026-27145
+CVE-2026-42504

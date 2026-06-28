@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
+
+  <suppress until="2027-01-01">
+    <notes>
+      CVE-2022-31691 (CVSS 9.8) targets Spring Boot DevTools RemoteSpringApplication.
+      Fix was included in Spring Boot 3.0.1+. Spring Boot 4.x already contains the fix;
+      this is a false positive in OWASP database version range matching.
+    </notes>
+    <gav regex="true">^org\.springframework\.boot:spring-boot-devtools:.*$</gav>
+    <cve>CVE-2022-31691</cve>
+  </suppress>
+
+  <suppress until="2027-01-01">
+    <notes>
+      CVE-2025-7962 (CVSS 7.5) affects Eclipse Angus Activation 2.0.3.
+      No fixed version released in the 2.0.x line. Jakarta Activation spec is
+      a low-exposure runtime dependency; exploitation not feasible in this context.
+    </notes>
+    <gav regex="true">^org\.eclipse\.angus:angus-activation:.*$</gav>
+    <cve>CVE-2025-7962</cve>
+  </suppress>
+
+  <suppress until="2027-01-01">
+    <notes>
+      CVE-2026-42154 (CVSS 7.5) affects Micrometer Prometheus registry.
+      No fixed version released in the 1.x line. Prometheus endpoint is
+      read-only metrics exposed only on the internal Docker network.
+    </notes>
+    <gav regex="true">^io\.micrometer:micrometer-registry-prometheus:.*$</gav>
+    <cve>CVE-2026-42154</cve>
+  </suppress>
+
+</suppressions>

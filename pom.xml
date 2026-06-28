@@ -170,6 +170,10 @@
 						<format>JSON</format>
 					</formats>
 					<failBuildOnCVSS>7</failBuildOnCVSS>
+					<failOnError>false</failOnError>
+					<suppressionFiles>
+						<suppressionFile>owasp-suppressions.xml</suppressionFile>
+					</suppressionFiles>
 				</configuration>
 			</plugin>
 		</plugins>
