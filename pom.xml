@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>4.0.6</version>
+		<version>4.1.0</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.spring-midterm</groupId>
@@ -163,13 +163,13 @@
 				<artifactId>dependency-check-maven</artifactId>
 				<version>10.0.4</version>
 				<configuration>
-				<skip>false</skip>
-				<nvdApiKeyIsRequired>false</nvdApiKeyIsRequired>
-				<formats>
-					<format>HTML</format>
-					<format>JSON</format>
-				</formats>
-				<failBuildOnCVSS>7</failBuildOnCVSS>
+					<skip>false</skip>
+					<nvdApiKeyIsRequired>false</nvdApiKeyIsRequired>
+					<formats>
+						<format>HTML</format>
+						<format>JSON</format>
+					</formats>
+					<failBuildOnCVSS>7</failBuildOnCVSS>
 				</configuration>
 			</plugin>
 		</plugins>
